@@ -1,5 +1,4 @@
 # Workshops
-Space where my work from the systems analysis and design course is located.
 
 # Workshop No. 1 — Kaggle Systems Engineering Analysis
 
@@ -22,8 +21,8 @@ The goal of the competition was to build a system capable of classifying harmful
 
 The evaluation metric was **multilabel log-loss**, which measures the accuracy and confidence of probabilistic predictions.  
 
-## 👨‍💻 Author
-**Juan Esteban Ávila Trujillo (20251020054)**  
+## 👨‍💻 Authors
+Team #9
 systems engineering program
 Universidad Distrital Francisco José de Caldas  
 
@@ -31,7 +30,7 @@ Universidad Distrital Francisco José de Caldas
 
 
 
-[Workshop #1 - Juan Esteban Avila Trujillo (20251020054).pdf](https://github.com/user-attachments/files/22571654/Workshop.1.-.Juan.Esteban.Avila.Trujillo.20251020054.pdf)
+[Workshop #1 - Team #9.pdf](https://github.com/user-attachments/files/22579227/Workshop.1.-.Team.9.pdf)
 
 [Visual_Representation___HMS___Harmful_Brain_Activity_Classification (1).pdf](https://github.com/user-attachments/files/22571655/Visual_Representation___HMS___Harmful_Brain_Activity_Classification.1.pdf)
 
