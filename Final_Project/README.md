@@ -16,4 +16,4 @@ The final project consists of the development of an analytical system based on t
 - `Poster` → Visual summary.
 - `Report` → Process description.
 - `presentation` → Slides.
-- `Competence` → Link.
+- [Kaggle Competition: Loan Default Prediction](https://www.kaggle.com/competitions/loan-default-prediction)
