@@ -15,5 +15,6 @@ The final project consists of the development of an analytical system based on t
 - `Article` → Chronicle of the research process.
 - `Poster` → Visual summary.
 - `Report` → Process description.
-- `presentation` → Slides.
+- `Presentation` → Slides.
+- `Data`.
 - [Kaggle Competition: Loan Default Prediction](https://www.kaggle.com/competitions/loan-default-prediction)
