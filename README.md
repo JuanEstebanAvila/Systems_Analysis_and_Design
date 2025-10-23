@@ -18,15 +18,17 @@ The main purpose is to successfully complete the course's core requirements.
 
 ## 👥 Team #9
 
-- **Members:**
+**Members:**
 - Juan Esteaban Avila
 - Juan Jose León
 - Juan Pablo Diaz
 - Miguel Angel Hernandez
 
-- **Institution:** Universidad Distrital Francisco José de Caldas
-- **Program:** Systems Engineering
-- **Professor:** Carlos Andres Sierra V.
+**Institution:** Universidad Distrital Francisco José de Caldas 
+
+**Program:** Systems Engineering 
+
+**Professor:** Carlos Andres Sierra V. 
 
 ## 🚀 Project Status
 
