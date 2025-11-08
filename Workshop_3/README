@@ -1,1 +1,44 @@
+# Workshop 3 - Systems Analysis and Design
+
+This repository corresponds to **Workshop No. 3** of the *Systems Analysis and Design* course at the Francisco José de Caldas District University.
+
+The main objective of this session is to **refine the system design** and **define a basic project management plan** to ensure that the proposed solution is **viable, scalable, and sustainable**.
+
+---
+
+## Workshop Content
+
+1. **System Architecture**
+
+- Updating the architecture diagram.
+
+- Applying robust design principles (modularity, scalability, fault tolerance, usability, and maintainability).
+
+- Referencing quality standards (ISO 9000, CMMI, Six Sigma).
+
+2. **Quality and Risk Analysis**
+
+- Identifying potential risks (failures, security, data loss, etc.).
+
+- Proposals for mitigation and monitoring.
+
+3. **Project Management Plan**
+
+- Definition of roles within the team (analyst, developer, tester, manager).
+
+- Establishment of milestones and deliverables.
+
+- Selection of methodologies and tools (Kanban, Gantt, Scrum, among others).
+
+4. **Incremental Improvements**
+
+- Review and application of feedback from previous workshops.
+
+- Summary of adjustments and improvements incorporated into the system.
+
+5. **Documentation and Delivery**
+
+- All documents are delivered in PDF format.
+
+- This repository contains the **Workshop-3** folder with the necessary files.
 
