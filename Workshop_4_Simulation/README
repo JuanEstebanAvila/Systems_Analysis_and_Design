@@ -1,1 +1,9 @@
+This repository contains the complete implementation of Workshop 4, which aims to transform the system design (proposed in previous workshops) into functional simulations capable of demonstrating the dynamic behavior of default risk in a financial system.
 
+To achieve this, two complementary approaches are used:
+
+Data-driven simulation using a Feigl Target Boosting Classifier to estimate default risk.
+
+Event-driven simulation using a Cellular Automaton (CA) that models how risk is distributed, attenuated, or propagated between observations.
+
+The combination of both models allowed for the observation of both the static structure of risk and its dynamic behavior.
