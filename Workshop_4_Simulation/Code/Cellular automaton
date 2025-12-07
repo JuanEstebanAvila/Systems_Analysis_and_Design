@@ -1,0 +1,285 @@
+import pandas as pd 
+
+#datos
+
+df = pd.read_csv("train_v2.csv")
+
+#Información sobre la base de datos
+
+print("Nombre de las columnas de la base de datos:")
+print(df.columns.tolist())
+
+#Pequeña muestra de los datos
+
+print("\nPrimeras 10 filas aleatorias de la base de datos:")
+display(df.sample(10, random_state=42))
+
+#Reducción del dataset a 5000 filas aleatorias
+
+df_small = df.sample(n=5000, random_state=42).reset_index(drop=True)
+
+#Guardar el nuevo dataset reducido 
+
+df_small.to_csv("train_v2_5000.csv", index = False)
+
+#Resumen de información del nuevo dataset reducido
+
+print("\nResumen de información del dataset reducido:")
+print(df_small.info())
+
+#Descripción estadística del nuevo dataset reducido
+
+print("\nDescripción estadística del dataset reducido:")
+display(df_small.describe().transpose)
+
+#Conteo y porcentaje de valores nulos en cada columna del nuevo dataset reducido
+
+missing_count = df_small.isnull().sum().sort_values(ascending=False)
+missing_pct = (missing_count / len(df_small) * 100).round(2)
+missing_df = pd.concat([missing_count, missing_pct], axis=1)
+missing_df.columns = ['Missing_count', 'Missing_pct']
+print("\nValores faltantes por columna (porcentaje y conteo) en el dataset reducido:")
+display(missing_df[missing_df['Missing_count'] > 0])
+
+#Columnas de tipo objeto
+df_small.select_dtypes(include="object").columns.tolist()
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+
+#datos
+
+df = pd.read_csv("train_v2.csv")
+
+#Reducción del dataset a 5000 filas aleatorias
+
+df_small = df.sample(n=5000, random_state=42).reset_index(drop=True)
+
+# 1. IDENTIFICAR TIPOS DE COLUMNAS
+
+num_cols = df_small.select_dtypes(include=["float64", "int64"]).columns
+cat_cols = df_small.select_dtypes(include=["object"]).columns
+
+print(f"Número de columnas numéricas: {len(num_cols)}")
+print(f"Número de columnas categóricas: {len(cat_cols)}")
+
+
+# 2. IMPUTAR COLUMNAS NUMÉRICAS CON LA MEDIANA
+
+for col in num_cols:
+    mediana = df_small[col].median()
+    df_small[col].fillna(mediana, inplace=True)
+
+
+# 3. IMPUTAR / CODIFICAR COLUMNAS CATEGÓRICAS
+
+label_encoders = {}
+
+for col in cat_cols:
+    le = LabelEncoder()
+    
+    # Convertir NA temporales en string para poder codificar
+    df_small[col] = df_small[col].astype(str).fillna("MISSING")
+    
+    # Ajustar el encoder y transformar
+    df_small[col] = le.fit_transform(df_small[col])
+    
+    # Guardar encoder por si se necesita aplicar al test
+    label_encoders[col] = le
+
+print("\nCodificación categórica completada.")
+
+
+# 4. COMPROBAR QUE YA NO HAY NULOS
+
+total_missing = df_small.isnull().sum().sum()
+
+print(f"\nTotal de valores faltantes después de la limpieza: {total_missing}")
+if total_missing == 0:
+    print("Limpieza completada. No quedan valores faltantes.")
+else:
+    print("Aún quedan valores faltantes. Revisar.")
+
+
+# 5. Vista final resumen
+
+print("\nResumen final del dataset limpio:")
+df_small.info()
+
+#GUARDAR EL NUEVO DATASET REDUCIDO Y LIMPIO
+
+df_small.to_csv("Data_limpia.csv", index = False)
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import mean_absolute_error
+import os
+
+#CONFIGURACIÓN DEL AUTÓMATA CELULAR
+
+rows = 50          # número de filas
+cols = 100         # número de columnas
+steps = 100         # número de iteraciones
+alpha = 0.8        # persistencia del valor propio
+beta = 0.15        # influencia de vecinos
+p_transmit = 0.6   # probabilidad de contagio
+noise_std = 0.5    # ruido gaussiano
+threshold_neighbor = 5.0 # umbral para contagio
+
+
+# 1.CREAR LA REJILLA INICIAL A PARTIR DE 'loss'
+losses = df_small["loss"].values.astype(float)
+size = rows * cols
+
+# Ajuste al tamaño exacto del grid
+if len(losses) >= size:
+    init_vector = losses[:size].copy()
+else:
+    init_vector = np.pad(losses, (0, size - len(losses)), 'constant')
+
+grid = init_vector.reshape(rows, cols)
+
+# Guardar todos los pasos para visualización
+history = [grid.copy()]
+
+
+#FUNCIÓN PARA PROMEDIO DE VECINOS 
+
+def neighbor_mean(mat):
+    s = np.zeros_like(mat)
+    s += np.roll(np.roll(mat,  1, axis=0),  1, axis=1)
+    s += np.roll(np.roll(mat,  1, axis=0),  0, axis=1)
+    s += np.roll(np.roll(mat,  1, axis=0), -1, axis=1)
+    s += np.roll(np.roll(mat,  0, axis=0),  1, axis=1)
+    s += np.roll(np.roll(mat,  0, axis=0), -1, axis=1)
+    s += np.roll(np.roll(mat, -1, axis=0),  1, axis=1)
+    s += np.roll(np.roll(mat, -1, axis=0),  0, axis=1)
+    s += np.roll(np.roll(mat, -1, axis=0), -1, axis=1)
+    return s / 8.0
+
+
+# 2) REGLAS DEL AUTÓMATA — ITERACIÓN
+
+for t in range(steps):
+    neigh = neighbor_mean(grid)
+
+    # Persistencia del estado anterior
+    comp_persist = alpha * grid
+
+    # Dónde ocurre contagio
+    mask_transmit = (neigh >= threshold_neighbor) & (np.random.rand(rows, cols) < p_transmit)
+
+    comp_neighbor = np.zeros_like(grid)
+    comp_neighbor[mask_transmit] = beta * neigh[mask_transmit]
+
+    # Ruido aleatorio para evitar determinismo perfecto
+    noise = np.random.normal(0, noise_std, size=(rows, cols))
+
+    # Actualización
+    new_grid = comp_persist + comp_neighbor + noise
+
+    # Decaimiento si no hubo contagio
+    decay_mask = ~mask_transmit
+    new_grid[decay_mask] = new_grid[decay_mask] * 0.995
+
+    # Limitar a [0,100]
+    new_grid = np.clip(new_grid, 0, 100)
+
+    grid = new_grid
+    history.append(grid.copy())
+
+print("Simulación completada ✔")
+
+os.makedirs("ca_plots", exist_ok=True)
+
+indices = [0, steps//2, steps]
+fig, axs = plt.subplots(1, len(indices), figsize=(5*len(indices), 4))
+
+for ax, idx in zip(axs, indices):
+    im = ax.imshow(history[idx], vmin=0, vmax=100, cmap="viridis")
+    ax.set_title(f"Step {idx}")
+    ax.axis("off")
+
+fig.colorbar(im, ax=axs.ravel().tolist(), shrink=0.6)
+plt.tight_layout()
+plt.savefig("ca_plots/ca_evolution.png", dpi=150)
+plt.show()
+
+print("Gráfica guardada en: ca_plots/ca_evolution.png")
+
+from sklearn.metrics import mean_absolute_error
+
+final_grid = history[-1].reshape(-1)[:len(init_vector)]
+true_losses = init_vector
+
+mae = mean_absolute_error(true_losses, final_grid)
+print("MAE entre el autómata y las pérdidas reales:", mae)
+
+import imageio
+
+frames = []
+
+for i in range(0, len(history), max(1, len(history)//100)):  # máximo 100 frames
+    fig, ax = plt.subplots(figsize=(4,4))
+    im = ax.imshow(history[i], vmin=0, vmax=100, cmap="viridis")
+    ax.axis("off")
+    
+    # Guardar frame temporal
+    filename = f"ca_plots/frame_{i}.png"
+    plt.savefig(filename, dpi=80)
+    plt.close()
+    frames.append(imageio.imread(filename))
+
+# Crear GIF
+imageio.mimsave("ca_plots/ca_animation.gif", frames, fps=12)
+print("GIF creado en: ca_plots/ca_animation.gif")
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import mean_absolute_error
+
+
+# 1. Flatten desde el historial del CA
+
+real_loss = history[0].flatten()      # estado inicial = datos reales
+simulated_loss = history[-1].flatten()  # estado final del CA
+
+
+# 2. Calcular errores
+
+errors = simulated_loss - real_loss
+mae_value = mean_absolute_error(real_loss, simulated_loss)
+std_error = np.std(errors)
+
+print("MAE:", mae_value)
+print("Standard deviation of error:", std_error)
+
+
+# 3. Graficar comparación Real vs Simulado
+
+plt.figure(figsize=(14,6))
+
+plt.subplot(1,2,1)
+plt.scatter(real_loss, simulated_loss, s=8, alpha=0.4)
+plt.plot([0,100], [0,100], color='red', linestyle='--', label="Perfect prediction")
+plt.xlabel("Real Loss")
+plt.ylabel("Simulated Loss")
+plt.title("Real vs Simulated Loss (Cellular Automaton)")
+plt.legend()
+
+
+# 4. Distribución del error
+
+plt.subplot(1,2,2)
+plt.hist(errors, bins=40, alpha=0.7, color='purple')
+plt.axvline(0, color='black', linestyle='--')
+plt.title("Distribution of Simulation Error")
+plt.xlabel("Simulated - Real")
+plt.ylabel("Frequency")
+plt.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+
