@@ -1,0 +1,41 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from src.ingestion import load_data
+from src.preprocessing import build_pipeline
+from src.model import create_model_pipeline, train_model
+from src.evaluation import evaluate_system, plot_confusion_matrix
+from src.chaos import simulate_chaos
+
+def main():
+    print("=== WORKSHOP 4: KAGGLE SYSTEM SIMULATION ===")
+    
+    # 1. Ingesta de Datos
+    # Asegúrate que el archivo train.csv esté en la carpeta data/
+    dataset_path = 'data/train.csv' 
+    X, y = load_data(dataset_path, nrows=50000) # Ajusta nrows según tu RAM
+    
+    # 2. División (Simulación de Pasado vs Futuro)
+    print("[SYSTEM] Dividiendo dataset (70% Train - 30% Test)...")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    
+    # 3. Construcción de Arquitectura
+    preprocessor = build_pipeline(X_train)
+    rf_model = create_model_pipeline(preprocessor)
+    
+    # 4. Escenario 1: Simulación Data-Driven (Entrenamiento)
+    rf_model = train_model(rf_model, X_train, y_train)
+    
+    # 5. Evaluación Normal
+    evaluate_system(rf_model, X_test, y_test)
+    
+    # 6. Escenario de Caos (Validación de Robustez)
+    simulate_chaos(rf_model, X_test, y_test)
+    
+    # 7. Visualización (Opcional, bloquea la terminal hasta cerrar la ventana)
+    # plot_confusion_matrix(rf_model, X_test, y_test)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"\n[CRITICAL ERROR] La simulación falló: {e}")
