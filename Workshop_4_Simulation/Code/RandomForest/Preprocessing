@@ -1,0 +1,45 @@
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+from sklearn.compose import ColumnTransformer
+
+def build_pipeline(X_train):
+    """
+    Construye la arquitectura de transformación de datos (ETL).
+    OPTIMIZACIÓN: Usa OrdinalEncoder para evitar la explosión de memoria RAM.
+    """
+    print("[SYSTEM] Construyendo Pipeline de Preprocesamiento Optimizado (Low Memory)...")
+    
+    # Detección automática de tipos de columnas
+    numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
+    categorical_features = X_train.select_dtypes(include=['object', 'category']).columns
+    
+    print(f"[SYSTEM] Features Numéricas: {len(numeric_features)}")
+    print(f"[SYSTEM] Features Categóricas: {len(categorical_features)}")
+
+    # Pipeline para Numéricos: Imputación + Escalado
+    numeric_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())
+    ])
+
+    # Pipeline para Categóricos: 
+    # CAMBIO CRÍTICO DE DISEÑO: Usamos OrdinalEncoder en lugar de OneHotEncoder.
+    # - OneHotEncoder: Crea 300,000 columnas -> Crash de Memoria (102 GB RAM)
+    # - OrdinalEncoder: Mantiene el número de columnas original -> Uso mínimo de RAM
+    # handle_unknown='use_encoded_value': Si aparece una categoría nueva en el futuro, le pone -1.
+    categorical_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+        ('ordinal', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1))
+    ])
+
+    # Unir todo en un transformador de columnas
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ],
+        remainder='drop' 
+    )
+    
+    return preprocessor
