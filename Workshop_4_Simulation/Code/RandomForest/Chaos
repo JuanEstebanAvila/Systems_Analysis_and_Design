@@ -1,0 +1,44 @@
+import numpy as np
+import pandas as pd
+from src.evaluation import evaluate_system
+
+def simulate_chaos(model, X_test, y_test):
+    """
+    Escenario de Simulación de Caos:
+    Introduce ruido en variables críticas para medir la sensibilidad del sistema.
+    """
+    print("\n" + "="*50)
+    print(" INICIANDO SIMULACIÓN DE CAOS (STRESS TESTING)")
+    print("="*50)
+    
+    # 1. Línea Base (Rendimiento normal)
+    baseline_acc = evaluate_system(model, X_test, y_test, phase_name="BASELINE (Sin ruido)")
+    
+    # 2. Selección de variable a perturbar
+    # Buscamos columnas numéricas
+    numeric_cols = X_test.select_dtypes(include=['float64', 'int64']).columns
+    if len(numeric_cols) == 0:
+        print("[CHAOS] No hay columnas numéricas para perturbar.")
+        return
+
+    target_col = numeric_cols[0] # Tomamos la primera como ejemplo
+    print(f"[CHAOS] Introduciendo perturbación en variable crítica: '{target_col}'")
+    
+    # 3. Inyección de Ruido (Efecto Mariposa)
+    # Multiplicamos los valores por un factor aleatorio entre 0.5 y 1.5
+    X_test_chaos = X_test.copy()
+    noise_factor = np.random.uniform(0.5, 1.5, size=X_test_chaos[target_col].shape)
+    X_test_chaos[target_col] = X_test_chaos[target_col] * noise_factor
+    
+    # 4. Evaluación bajo estrés
+    chaos_acc = evaluate_system(model, X_test_chaos, y_test, phase_name="CHAOS (Con ruido)")
+    
+    # 5. Análisis de Resultados
+    degradation = baseline_acc - chaos_acc
+    print("\n--- ANÁLISIS DE ROBUSTEZ ---")
+    print(f"Caída de rendimiento: {degradation*100:.2f}%")
+    
+    if degradation < 0.05:
+        print("RESULTADO: El sistema es ROBUSTO. El Random Forest absorbió la perturbación.")
+    else:
+        print("RESULTADO: El sistema es SENSIBLE. Se detectaron patrones caóticos/inestabilidad.")
