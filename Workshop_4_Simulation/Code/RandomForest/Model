@@ -1,0 +1,27 @@
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+
+def create_model_pipeline(preprocessor):
+    """
+    Ensambla el Pipeline Final: Preprocesamiento + Modelo Random Forest.
+    """
+    print("[SYSTEM] Inicializando configuración de Random Forest...")
+    
+    # Definición del modelo
+    # n_estimators=100: Simula 100 árboles de decisión votando (Ensamble)
+    # random_state=42: Garantiza reproducibilidad (Control del Caos)
+    # class_weight='balanced' obliga al modelo a prestar atención a la clase minoritaria (Default)
+    rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)    # Pipeline completo
+    model = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('classifier', rf)
+    ])
+    
+    return model
+
+def train_model(model, X_train, y_train):
+    """Simula el proceso de entrenamiento."""
+    print("[SYSTEM] Iniciando fase de Entrenamiento (Training Simulation)...")
+    model.fit(X_train, y_train)
+    print("[SYSTEM] Entrenamiento completado.")
+    return model
