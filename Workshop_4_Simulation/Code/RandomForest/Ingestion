@@ -1,0 +1,70 @@
+import pandas as pd
+import os
+
+def load_data(filepath, nrows=20000):
+    """
+    Simula el subsistema de Ingesta de Datos.
+    VERSIÓN DEBUG: Muestra columnas si falla la detección.
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"El archivo {filepath} no existe.")
+
+    print(f"[SYSTEM] Ingestando datos desde: {filepath} (Límite: {nrows} filas)...")
+    
+    # 1. Carga de datos
+    df = pd.read_csv(filepath, nrows=nrows, low_memory=False)
+    
+    # Limpieza de nombres de columnas
+    df.columns = df.columns.str.strip().str.lower()
+
+    # --- DEBUGGING: ¿Qué columnas tenemos realmente? ---
+    # Si 'loss' no está, imprimimos las primeras y últimas columnas para ver qué pasa
+    if 'loss' not in df.columns and 'default' not in df.columns:
+        print("\n[DEBUG ERROR] No encuentro la columna 'loss'.")
+        print(f"Columnas disponibles (primeras 5): {list(df.columns[:5])}")
+        print(f"Columnas disponibles (últimas 5): {list(df.columns[-5:])}")
+        # Buscamos manualmente si hay algo parecido a 'loss'
+        candidates = [c for c in df.columns if 'loss' in c]
+        if candidates:
+            print(f"¿Quizás quisiste decir alguna de estas?: {candidates}")
+        
+        raise ValueError("[CRITICAL] Deteniendo simulación por falta de Target válido.")
+
+    # 2. Lógica de Target Binario (Ahora estricta)
+    if 'loss' in df.columns:
+        # Importante: En este dataset, loss=0 es NO default. Loss>0 es Default.
+        # Imprimimos estadísticas para verificar que no esté todo en 1 o 0
+        loss_stats = (df['loss'] > 0).value_counts()
+        print(f"[DEBUG] Distribución real de LOSS > 0:\n{loss_stats}")
+        
+        df['target'] = (df['loss'] > 0).astype(int)
+        # Borramos la columna original loss para que no sea un 'leak'
+        drop_cols = ['id', 'loss', 'target'] 
+    
+    elif 'default' in df.columns:
+        df['target'] = df['default'].astype(int)
+        drop_cols = ['id', 'default', 'target']
+
+    # 3. Limpieza de Features
+    # Buscamos columnas que parezcan IDs para borrarlas
+    potential_id_cols = [c for c in df.columns if 'id' in c]
+    # Unimos listas de columnas a borrar
+    final_drop_cols = list(set(drop_cols + potential_id_cols))
+    
+    X = df.drop(columns=[c for c in final_drop_cols if c in df.columns], errors='ignore')
+    y = df['target']
+
+    # 4. Normalización de Tipos
+    object_cols = X.select_dtypes(include=['object']).columns
+    if len(object_cols) > 0:
+        print(f"[SYSTEM] Normalizando {len(object_cols)} columnas con tipos mixtos a String...")
+        X[object_cols] = X[object_cols].astype(str)
+
+    print(f"[SYSTEM] Datos saneados. Dimensiones X: {X.shape}")
+    
+    # Verificación final de balanceo
+    if y.nunique() < 2:
+        print("[WARNING] ¡Cuidado! El target solo tiene una clase. El modelo no aprenderá nada.")
+        print(f"Valores únicos en target: {y.unique()}")
+
+    return X, y
