@@ -32,4 +32,4 @@ The main purpose is to successfully complete the course's core requirements.
 
 ## 🚀 Project Status
 
-📅 *Under active development*
+📅 *Project completed*
